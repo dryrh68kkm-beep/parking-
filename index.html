@@ -105,14 +105,14 @@
       <div class="grid">
         <div><label for="plate">ทะเบียนรถ *</label><input id="plate" required placeholder="เช่น 1กข 1234"></div>
         <div><label for="province">จังหวัด</label><input id="province" list="provinces" placeholder="นนทบุรี"></div>
-        <div><label for="vehicle">ยี่ห้อ / สี</label><input id="vehicle" placeholder="Toyota ขาว"></div>
+        <div><label for="brand">ยี่ห้อ</label><input id="brand" placeholder="Toyota"></div>
+        <div><label for="color">สี</label><input id="color" placeholder="ขาว"></div>
         <div><label for="type">ประเภท</label>
           <select id="type">
             <option>ลูกค้า</option><option>พนักงาน</option><option>ผู้มาติดต่อ</option>
             <option>รถส่งสินค้า</option><option>อื่น ๆ</option>
           </select>
         </div>
-        <div><label for="zone">โซน / ช่องจอด</label><input id="zone" placeholder="A-12"></div>
         <div><label for="recorder">ผู้บันทึก</label><input id="recorder" placeholder="ชื่อผู้บันทึก"></div>
         <div><label for="timeIn">เวลาเข้า *</label><input id="timeIn" type="datetime-local" required></div>
         <div><label for="timeOut">เวลาออก</label><input id="timeOut" type="datetime-local"></div>
@@ -136,7 +136,7 @@
       <div><label for="fromDate">ตั้งแต่วันที่</label><input id="fromDate" type="date"></div>
       <div><label for="toDate">ถึงวันที่</label><input id="toDate" type="date"></div>
     </div>
-    <input id="search" placeholder="🔍 ค้นหาทะเบียน / โซน / หมายเหตุ" style="margin-bottom:8px">
+    <input id="search" placeholder="🔍 ค้นหาทะเบียน / ยี่ห้อ / สี / หมายเหตุ" style="margin-bottom:8px">
     <div class="actions" style="margin-top:0">
       <button class="teal" onclick="openReport()">🖨️ พิมพ์ / บันทึกเป็น PDF</button>
     </div>
@@ -209,8 +209,8 @@ $('form').addEventListener('submit', (e) => {
   const rec = {
     id,
     plate: $('plate').value.trim(), province: $('province').value.trim(),
-    vehicle: $('vehicle').value.trim(), type: $('type').value,
-    zone: $('zone').value.trim(), recorder: $('recorder').value.trim(),
+    brand: $('brand').value.trim(), color: $('color').value.trim(), type: $('type').value,
+    recorder: $('recorder').value.trim(),
     timeIn: $('timeIn').value, timeOut: $('timeOut').value,
     note: $('note').value.trim(), photo: photoData,
   };
@@ -233,7 +233,8 @@ function resetForm() {
 
 function edit(id) {
   const r = records.find(x => x.id === id); if (!r) return;
-  for (const k of ['id', 'plate', 'province', 'vehicle', 'type', 'zone', 'recorder', 'timeIn', 'timeOut', 'note']) $(k).value = r[k] || '';
+  for (const k of ['id', 'plate', 'province', 'brand', 'color', 'type', 'recorder', 'timeIn', 'timeOut', 'note']) $(k).value = r[k] || '';
+  if (!r.brand && r.vehicle) $('brand').value = r.vehicle; // รายการเก่าที่เก็บยี่ห้อ/สีรวมกัน
   photoData = r.photo || '';
   $('photoPreview').src = photoData; $('photoPreview').style.display = photoData ? 'block' : 'none';
   $('formTitle').textContent = 'แก้ไขรายการ';
@@ -255,7 +256,7 @@ function filtered() {
     const d = (r.timeIn || '').slice(0, 10);
     if (from && d < from) return false;
     if (to && d > to) return false;
-    if (q && ![r.plate, r.province, r.zone, r.note, r.vehicle, r.type].join(' ').toLowerCase().includes(q)) return false;
+    if (q && ![r.plate, r.province, r.brand, r.color, r.vehicle, r.note, r.type].join(' ').toLowerCase().includes(q)) return false;
     return true;
   });
 }
@@ -268,7 +269,7 @@ function render() {
       <div class="info">
         <div class="plate">${esc(r.plate)} <span class="meta">${esc(r.province)}</span>
           <span class="badge ${r.timeOut ? 'out' : ''}">${r.timeOut ? 'ออกแล้ว' : 'จอดอยู่'}</span></div>
-        <div class="meta">${esc(r.type)}${r.zone ? ' · โซน ' + esc(r.zone) : ''}${r.vehicle ? ' · ' + esc(r.vehicle) : ''}</div>
+        <div class="meta">${esc(r.type)}${r.brand || r.vehicle ? ' · ' + esc(r.brand || r.vehicle) : ''}${r.color ? ' · สี' + esc(r.color) : ''}</div>
         <div class="meta">เข้า ${fmt(r.timeIn)} · ออก ${fmt(r.timeOut)}</div>
         ${r.note ? `<div class="meta">📝 ${esc(r.note)}</div>` : ''}
         <div class="row" style="margin-top:6px;gap:4px">
@@ -288,9 +289,9 @@ function buildReport(list) {
     <tr>
       <td>${i + 1}</td>
       <td><b>${esc(r.plate)}</b><br>${esc(r.province)}</td>
-      <td>${esc(r.vehicle)}</td>
+      <td>${esc(r.brand || r.vehicle)}</td>
+      <td>${esc(r.color)}</td>
       <td>${esc(r.type)}</td>
-      <td>${esc(r.zone)}</td>
       <td>${fmt(r.timeIn)}</td>
       <td>${fmt(r.timeOut)}</td>
       <td>${esc(r.note)}</td>
@@ -304,7 +305,7 @@ function buildReport(list) {
       <p style="font-size:11px">พิมพ์เมื่อ ${new Date().toLocaleString('th-TH')}</p>
     </div>
     <table>
-      <thead><tr><th>#</th><th>ทะเบียน</th><th>ยี่ห้อ/สี</th><th>ประเภท</th><th>โซน</th>
+      <thead><tr><th>#</th><th>ทะเบียน</th><th>ยี่ห้อ</th><th>สี</th><th>ประเภท</th>
         <th>เวลาเข้า</th><th>เวลาออก</th><th>หมายเหตุ</th><th>ผู้บันทึก</th><th>รูป</th></tr></thead>
       <tbody>${rows || '<tr><td colspan="10" style="text-align:center">ไม่มีรายการ</td></tr>'}</tbody>
     </table>
