@@ -105,7 +105,11 @@
       <div class="grid">
         <div><label for="plate">ทะเบียนรถ *</label><input id="plate" required placeholder="เช่น 1กข 1234"></div>
         <div><label for="province">จังหวัด</label><input id="province" list="provinces" placeholder="นนทบุรี"></div>
-        <div><label for="brand">ยี่ห้อ</label><input id="brand" placeholder="Toyota"></div>
+        <div><label for="brand">ยี่ห้อ</label>
+          <select id="brand">
+            <option value="">— เลือกยี่ห้อ —</option><option>Toyota</option><option>Honda</option><option>Isuzu</option><option>Mitsubishi</option><option>Nissan</option><option>Mazda</option><option>Ford</option><option>MG</option><option>Suzuki</option><option>BYD</option><option>GWM (Haval / ORA)</option><option>Mercedes-Benz</option><option>BMW</option><option>อื่น ๆ</option>
+          </select>
+        </div>
         <div><label for="color">สี</label><input id="color" placeholder="ขาว"></div>
         <div><label for="timeIn">เวลาเข้า *</label><input id="timeIn" type="datetime-local" required></div>
         <div><label for="timeOut">เวลาออก</label><input id="timeOut" type="datetime-local"></div>
@@ -225,10 +229,17 @@ function resetForm() {
   $('formTitle').textContent = 'บันทึกรายการใหม่';
 }
 
+// รายการเก่าที่ยี่ห้อไม่อยู่ในรายการ ให้เพิ่มตัวเลือกชั่วคราวเพื่อไม่ให้ข้อมูลหาย
+function setBrand(v) {
+  const sel = $('brand');
+  if (v && ![...sel.options].some(o => o.value === v)) sel.add(new Option(v, v));
+  sel.value = v;
+}
+
 function edit(id) {
   const r = records.find(x => x.id === id); if (!r) return;
-  for (const k of ['id', 'plate', 'province', 'brand', 'color', 'recorder', 'timeIn', 'timeOut', 'note']) $(k).value = r[k] || '';
-  if (!r.brand && r.vehicle) $('brand').value = r.vehicle; // รายการเก่าที่เก็บยี่ห้อ/สีรวมกัน
+  for (const k of ['id', 'plate', 'province', 'color', 'recorder', 'timeIn', 'timeOut', 'note']) $(k).value = r[k] || '';
+  setBrand(r.brand || r.vehicle || ''); // r.vehicle = รายการเก่าที่เก็บยี่ห้อ/สีรวมกัน
   photoData = r.photo || '';
   $('photoPreview').src = photoData; $('photoPreview').style.display = photoData ? 'block' : 'none';
   $('formTitle').textContent = 'แก้ไขรายการ';
