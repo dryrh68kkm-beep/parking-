@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1e3a5f">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>บันทึกการจอดรถ</title>
+<title>บันทึกการรับฝากรถ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -70,18 +70,24 @@
   }
   .toast.show { opacity: 1; }
   #report { display: none; }
+  [hidden] { display: none !important; }
+  .modal { position: fixed; inset: 0; z-index: 20; background: rgba(15,30,50,.45); display: flex; align-items: flex-end; justify-content: center; padding: 16px; }
+  .modal-card { background: var(--card); border-radius: var(--radius); padding: 16px; width: 100%; max-width: 560px; margin-bottom: env(safe-area-inset-bottom); }
+  .modal-card h2 { font-size: 16px; margin: 0 0 10px; }
+  .modal-card textarea { min-height: 260px; line-height: 1.6; }
+  button.line { background: #06c755; }
 
   /* ---------- โหมดพิมพ์ / บันทึกเป็น PDF ---------- */
-  @page { size: A4; margin: 12mm; }
+  @page { size: A4 landscape; margin: 10mm; }
   @media print {
     body { background: #fff; font-size: 12px; }
-    header.app, main, .toast { display: none !important; }
+    header.app, main, .toast, .modal { display: none !important; }
     #report { display: block; color: #000; }
     .r-head { text-align: center; margin-bottom: 8px; }
     .r-head h1 { font-size: 18px; margin: 0; }
     .r-head p { margin: 2px 0; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; word-wrap: break-word; }
-    th:nth-child(1) { width: 5%; } th:nth-child(10) { width: 12%; }
+    th:nth-child(1) { width: 5%; } th:nth-child(11) { width: 10%; }
     th, td { border: 1px solid #555; padding: 4px 5px; vertical-align: top; text-align: left; }
     th { background: #e6e6e6; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     tr { page-break-inside: avoid; }
@@ -93,7 +99,7 @@
 </head>
 <body>
 <header class="app">
-  <h1>🚗 บันทึกการจอดรถ</h1>
+  <h1>🚗 บันทึกการรับฝากรถ</h1>
   <button class="teal small" onclick="openReport()">🖨️ PDF</button>
 </header>
 
@@ -106,15 +112,19 @@
         <div><label for="plate">ทะเบียนรถ *</label><input id="plate" required placeholder="เช่น 1กข 1234"></div>
         <div><label for="province">จังหวัด</label><input id="province" list="provinces" placeholder="นนทบุรี"></div>
         <div class="full"><label for="customer">ชื่อลูกค้า</label><input id="customer" placeholder="ชื่อ-นามสกุล"></div>
+        <div class="full"><label for="phone">เบอร์โทรติดต่อ</label><input id="phone" type="tel" inputmode="tel" placeholder="0xx-xxx-xxxx"></div>
         <div><label for="brand">ยี่ห้อ</label>
           <select id="brand">
             <option value="">— เลือกยี่ห้อ —</option><option>Toyota</option><option>Honda</option><option>Isuzu</option><option>Mitsubishi</option><option>Nissan</option><option>Mazda</option><option>Ford</option><option>MG</option><option>Suzuki</option><option>BYD</option><option>GWM (Haval / ORA)</option><option>Mercedes-Benz</option><option>BMW</option><option>อื่น ๆ</option>
           </select>
         </div>
-        <div><label for="color">สี</label><input id="color" placeholder="ขาว"></div>
+        <div><label for="model">รุ่น</label><input id="model" placeholder="เช่น Dolphin"></div>
+        <div class="full"><label for="color">สี</label><input id="color" placeholder="เช่น ชมพู-เทา"></div>
+        <div class="full"><label for="point">จุดนำฝากรถ</label><input id="point" list="points" placeholder="เช่น จุดที่ 1 บริเวณหน้าลานจอดรถจักรยานยนต์ลูกค้า"></div>
         <div><label for="timeIn">เวลาเข้า *</label><input id="timeIn" type="datetime-local" required></div>
         <div><label for="timeOut">เวลาออก</label><input id="timeOut" type="datetime-local"></div>
-        <div class="full"><label for="recorder">ผู้บันทึก</label><input id="recorder" placeholder="ชื่อผู้บันทึก"></div>
+        <div class="full"><label for="recorder">ผู้รับเรื่องฝาก</label><input id="recorder" placeholder="ชื่อ-นามสกุล / รหัส"></div>
+        <div class="full"><label for="project">โครงการ</label><input id="project"></div>
         <div class="full"><label for="note">หมายเหตุ</label><textarea id="note" placeholder="รายละเอียดเพิ่มเติม"></textarea></div>
         <div class="full">
           <label for="photo">รูปถ่าย (ถ้ามี)</label>
@@ -135,7 +145,7 @@
       <div><label for="fromDate">ตั้งแต่วันที่</label><input id="fromDate" type="date"></div>
       <div><label for="toDate">ถึงวันที่</label><input id="toDate" type="date"></div>
     </div>
-    <input id="search" placeholder="🔍 ค้นหาทะเบียน / ชื่อ / ยี่ห้อ" style="margin-bottom:8px">
+    <input id="search" placeholder="🔍 ค้นหาทะเบียน / ชื่อ / เบอร์โทร" style="margin-bottom:8px">
     <div class="actions" style="margin-top:0">
       <button class="teal" onclick="openReport()">🖨️ พิมพ์ / บันทึกเป็น PDF</button>
     </div>
@@ -147,6 +157,20 @@
 <div id="report"></div>
 <div id="toast" class="toast"></div>
 
+<!-- สรุปรายงานลงกลุ่ม -->
+<div id="shareBox" class="modal" hidden>
+  <div class="modal-card">
+    <h2>📋 สรุปรายงานลงกลุ่ม</h2>
+    <textarea id="shareText" rows="12"></textarea>
+    <div class="actions">
+      <button type="button" class="secondary" onclick="$('shareBox').hidden = true">ปิด</button>
+      <button type="button" onclick="copySummary()">คัดลอก</button>
+      <button type="button" class="line" onclick="sendLine()">ส่ง LINE</button>
+    </div>
+  </div>
+</div>
+
+<datalist id="points"></datalist>
 <datalist id="provinces">
   <option>กรุงเทพมหานคร</option><option>นนทบุรี</option><option>ปทุมธานี</option>
   <option>สมุทรปราการ</option><option>นครปฐม</option><option>พระนครศรีอยุธยา</option>
@@ -154,6 +178,7 @@
 
 <script>
 const KEY = 'parking-records-v1';
+const DEFAULT_PROJECT = 'บิ๊กซี “ช่วยเหลือผู้ได้รับผลกระทบจากสถานการณ์น้ำท่วม”';
 const $ = (id) => document.getElementById(id);
 let records = load();
 let photoData = '';
@@ -208,7 +233,8 @@ $('form').addEventListener('submit', (e) => {
   const rec = {
     id,
     plate: $('plate').value.trim(), province: $('province').value.trim(), customer: $('customer').value.trim(),
-    brand: $('brand').value.trim(), color: $('color').value.trim(),
+    phone: $('phone').value.trim(), brand: $('brand').value.trim(), model: $('model').value.trim(),
+    color: $('color').value.trim(), point: $('point').value.trim(), project: $('project').value.trim(),
     recorder: $('recorder').value.trim(),
     timeIn: $('timeIn').value, timeOut: $('timeOut').value,
     note: $('note').value.trim(), photo: photoData,
@@ -217,9 +243,13 @@ $('form').addEventListener('submit', (e) => {
   const backup = records.slice();
   if (i >= 0) records[i] = rec; else records.unshift(rec);
   if (!save()) { records = backup; return; }
-  try { localStorage.setItem('parking-recorder', rec.recorder); } catch (e) {}
+  try {
+    localStorage.setItem('parking-recorder', rec.recorder);
+    localStorage.setItem('parking-project', rec.project);
+  } catch (e) {}
   toast(i >= 0 ? 'แก้ไขเรียบร้อย' : 'บันทึกเรียบร้อย');
   resetForm(); render();
+  if (i < 0) showSummary(rec.id); // บันทึกใหม่ → เปิดสรุปรายงานให้ส่งกลุ่มทันที
 });
 
 function resetForm() {
@@ -227,6 +257,11 @@ function resetForm() {
   $('photoPreview').style.display = 'none';
   $('timeIn').value = nowLocal();
   try { $('recorder').value = localStorage.getItem('parking-recorder') || ''; } catch (e) {}
+  let project = '';
+  try { project = localStorage.getItem('parking-project') || ''; } catch (e) {}
+  $('project').value = project || DEFAULT_PROJECT;
+  // จุดฝากรถที่เคยใช้ → ให้เลือกซ้ำได้
+  $('points').innerHTML = [...new Set(records.map(r => r.point).filter(Boolean))].map(p => `<option>${esc(p)}</option>`).join('');
   $('formTitle').textContent = 'บันทึกรายการใหม่';
 }
 
@@ -239,7 +274,7 @@ function setBrand(v) {
 
 function edit(id) {
   const r = records.find(x => x.id === id); if (!r) return;
-  for (const k of ['id', 'plate', 'province', 'customer', 'color', 'recorder', 'timeIn', 'timeOut', 'note']) $(k).value = r[k] || '';
+  for (const k of ['id', 'plate', 'province', 'customer', 'phone', 'model', 'color', 'point', 'project', 'recorder', 'timeIn', 'timeOut', 'note']) $(k).value = r[k] || '';
   setBrand(r.brand || r.vehicle || ''); // r.vehicle = รายการเก่าที่เก็บยี่ห้อ/สีรวมกัน
   photoData = r.photo || '';
   $('photoPreview').src = photoData; $('photoPreview').style.display = photoData ? 'block' : 'none';
@@ -262,7 +297,7 @@ function filtered() {
     const d = (r.timeIn || '').slice(0, 10);
     if (from && d < from) return false;
     if (to && d > to) return false;
-    if (q && ![r.plate, r.province, r.customer, r.brand, r.color, r.vehicle, r.note].join(' ').toLowerCase().includes(q)) return false;
+    if (q && ![r.plate, r.province, r.customer, r.phone, r.brand, r.model, r.color, r.point, r.vehicle, r.note].join(' ').toLowerCase().includes(q)) return false;
     return true;
   });
 }
@@ -275,13 +310,15 @@ function render() {
       <div class="info">
         <div class="plate">${esc(r.plate)} <span class="meta">${esc(r.province)}</span>
           <span class="badge ${r.timeOut ? 'out' : ''}">${r.timeOut ? 'ออกแล้ว' : 'จอดอยู่'}</span></div>
-        ${r.customer ? `<div class="meta">👤 ${esc(r.customer)}</div>` : ''}
-        ${r.brand || r.vehicle || r.color ? `<div class="meta">${esc([r.brand || r.vehicle, r.color && 'สี' + r.color].filter(Boolean).join(' · '))}</div>` : ''}
+        ${r.customer || r.phone ? `<div class="meta">👤 ${esc([r.customer, r.phone].filter(Boolean).join(' · '))}</div>` : ''}
+        ${carText(r) ? `<div class="meta">🚗 ${esc(carText(r))}</div>` : ''}
+        ${r.point ? `<div class="meta">📍 ${esc(r.point)}</div>` : ''}
         <div class="meta">เข้า ${fmt(r.timeIn)} · ออก ${fmt(r.timeOut)}</div>
         ${r.note ? `<div class="meta">📝 ${esc(r.note)}</div>` : ''}
         <div class="row" style="margin-top:6px;gap:4px">
           ${r.timeOut ? '' : `<button class="small teal" style="flex:none" onclick="checkout('${r.id}')">บันทึกออก</button>`}
           <button class="small secondary" style="flex:none" onclick="edit('${r.id}')">แก้ไข</button>
+          <button class="small secondary" style="flex:none" onclick="showSummary('${r.id}')">สรุปลงกลุ่ม</button>
           <button class="small secondary" style="flex:none" onclick="printOne('${r.id}')">PDF</button>
           <button class="danger small" style="flex:none" onclick="removeRec('${r.id}')">ลบ</button>
         </div>
@@ -296,9 +333,10 @@ function buildReport(list) {
     <tr>
       <td>${i + 1}</td>
       <td><b>${esc(r.plate)}</b><br>${esc(r.province)}</td>
-      <td>${esc(r.customer)}</td>
-      <td>${esc(r.brand || r.vehicle)}</td>
+      <td>${esc(r.customer)}${r.phone ? '<br>' + esc(r.phone) : ''}</td>
+      <td>${esc([r.brand || r.vehicle, r.model].filter(Boolean).join(' '))}</td>
       <td>${esc(r.color)}</td>
+      <td>${esc(r.point)}</td>
       <td>${fmt(r.timeIn)}</td>
       <td>${fmt(r.timeOut)}</td>
       <td>${esc(r.note)}</td>
@@ -307,19 +345,59 @@ function buildReport(list) {
     </tr>`).join('');
   $('report').innerHTML = `
     <div class="r-head">
-      <h1>รายงานบันทึกการจอดรถ</h1>
+      <h1>รายงานการรับฝากรถ</h1>
       <p>${range} · จำนวน ${list.length} รายการ</p>
       <p style="font-size:11px">พิมพ์เมื่อ ${new Date().toLocaleString('th-TH')}</p>
     </div>
     <table>
-      <thead><tr><th>#</th><th>ทะเบียน</th><th>ชื่อลูกค้า</th><th>ยี่ห้อ</th><th>สี</th>
-        <th>เวลาเข้า</th><th>เวลาออก</th><th>หมายเหตุ</th><th>ผู้บันทึก</th><th>รูป</th></tr></thead>
-      <tbody>${rows || '<tr><td colspan="10" style="text-align:center">ไม่มีรายการ</td></tr>'}</tbody>
+      <thead><tr><th>#</th><th>ทะเบียน</th><th>ลูกค้า / เบอร์โทร</th><th>ยี่ห้อ / รุ่น</th><th>สี</th><th>จุดฝากรถ</th>
+        <th>เวลาเข้า</th><th>เวลาออก</th><th>หมายเหตุ</th><th>ผู้รับเรื่องฝาก</th><th>รูป</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="11" style="text-align:center">ไม่มีรายการ</td></tr>'}</tbody>
     </table>
     <div class="sign">
-      <div>ลงชื่อ ....................................<br>ผู้บันทึก</div>
+      <div>ลงชื่อ ....................................<br>ผู้รับเรื่องฝาก</div>
       <div>ลงชื่อ ....................................<br>ผู้ตรวจสอบ</div>
     </div>`;
+}
+
+function carText(r) {
+  const car = [r.brand || r.vehicle, r.model].filter(Boolean).join(' ');
+  return [car, r.color && 'สี' + r.color].filter(Boolean).join(' ');
+}
+function thaiDate(v) {
+  const d = v ? new Date(v) : new Date();
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear() + 543}`;
+}
+function summaryText(r) {
+  const car = [r.brand && r.brand !== 'อื่น ๆ' ? r.brand : r.vehicle, r.model].filter(Boolean).join(' ');
+  const lines = [
+    `วันที่ ${thaiDate(r.timeIn)}`,
+    `ลูกค้ามีความประสงค์ฝากรถยนต์ โครงการ ${r.project || DEFAULT_PROJECT}`,
+    `ลูกค้า ${r.customer || '-'}`,
+    `รถยี่ห้อ ${car || '-'}${r.color ? ' สี' + r.color : ''}`,
+    `ป้ายทะเบียน ${[r.plate, r.province].filter(Boolean).join(' ')}`,
+    `เบอร์โทรติดต่อ ${r.phone || '-'}`,
+    `จุดนำฝากรถ ${r.point || '-'}`,
+  ];
+  if (r.note) lines.push(`หมายเหตุ ${r.note}`);
+  if (r.timeOut) lines.push(`รับรถคืนแล้ว ${fmt(r.timeOut)}`);
+  lines.push(`ผู้รับเรื่องฝาก ${r.recorder || '-'}`);
+  return lines.join('\n');
+}
+function showSummary(id) {
+  const r = records.find(x => x.id === id); if (!r) return;
+  $('shareText').value = summaryText(r);
+  $('shareBox').hidden = false;
+}
+function copySummary() {
+  const t = $('shareText');
+  const done = () => toast('คัดลอกแล้ว — วางในกลุ่ม LINE ได้เลย');
+  if (navigator.clipboard) navigator.clipboard.writeText(t.value).then(done, () => { t.select(); document.execCommand('copy'); done(); });
+  else { t.select(); document.execCommand('copy'); done(); }
+}
+function sendLine() {
+  // เปิด LINE ให้เลือกกลุ่มที่จะส่ง
+  location.href = 'https://line.me/R/share?text=' + encodeURIComponent($('shareText').value);
 }
 
 function doPrint() {
